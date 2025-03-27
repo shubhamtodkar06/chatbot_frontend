@@ -153,7 +153,12 @@
     <script>
         var chatbox = document.getElementById('chatbox');
         var userInput = document.getElementById('userInput');
-        var socket = io();
+
+        // Get the backend URL from an environment variable
+        const backendUrl = process.env.RENDER_BACKEND_URL || '';
+
+        // Initialize SocketIO connection with the backend URL
+        var socket = io(backendUrl);
 
         socket.on('connect', function() {
             console.log('Connected to server');
