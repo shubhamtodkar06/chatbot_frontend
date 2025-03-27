@@ -143,8 +143,7 @@
 
     <div class="chat-container">
         <div class="chat-header">Chatbot</div>
-        <div id="chatbox"></div>
-        <div class="chat-input">
+        <div id="chatbox"><div></div></div> <div class="chat-input">
             <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
             <button class="send-btn" onclick="sendMessageFromButton()">Send</button>
         </div>
@@ -152,6 +151,7 @@
 
     <script>
         var chatbox = document.getElementById('chatbox');
+        var chatboxContent = chatbox.querySelector('div'); // The inner div where messages are added
         var userInput = document.getElementById('userInput');
 
         // Get the backend URL from an environment variable
@@ -171,9 +171,9 @@
         socket.on('message', function(data) {
             var message = document.createElement('p');
             message.textContent = data;
-            message.classList.add('bot-message');
-            chatbox.appendChild(message);
-            chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll
+            message.classList.add('bot-message'); // Add class for bot messages
+            chatboxContent.appendChild(message); // Append to the inner div
+            // Scrolling will be handled by the MutationObserver
         });
 
         function sendMessage(message) {
@@ -181,10 +181,10 @@
             socket.emit('user_message', message);
             var userMessage = document.createElement('p');
             userMessage.textContent = 'You: ' + message;
-            userMessage.classList.add('user-message');
-            chatbox.appendChild(userMessage);
-            userInput.value = ""; // Clear input
-            chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll
+            userMessage.classList.add('user-message'); // Add class for user messages
+            chatboxContent.appendChild(userMessage); // Append to the inner div
+            userInput.value = ""; // Clear input after sending
+            // Scrolling will be handled by the MutationObserver
         }
 
         function handleKeyPress(event) {
@@ -196,6 +196,18 @@
         function sendMessageFromButton() {
             sendMessage(userInput.value);
         }
+
+        // MutationObserver to automatically scroll to the bottom when new messages are added
+        const observer = new MutationObserver(function(mutationsList) {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                }
+            }
+        });
+
+        // Start observing the chatbox for added nodes
+        observer.observe(chatbox, { childList: true, subtree: true }); // Observe chatbox directly and its subtree
     </script>
 
 </body>
