@@ -42,10 +42,9 @@
             font-size: 1.2em;
             text-align: center;
             font-weight: bold;
-
         }
 
-        /* Chatbox (Messages Area) */
+        /* Chatbox */
         #chatbox {
             flex-grow: 1;
             overflow-y: auto;
@@ -67,30 +66,47 @@
         }
 
         /* Message Styling */
-        #chatbox p {
-            padding: 12px 16px;
-            margin-bottom: 10px;
-            border-radius: 12px;
+        .message {
+            display: flex;
+            flex-direction: column;
             max-width: 75%;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 15px;
             word-break: break-word;
-            font-size: 1.1em; /* Increased text size */
-            font-weight: bold; /* Bold text */
+            font-size: 1em;
+            font-weight: 500;
+            position: relative;
         }
 
         /* User Message */
-        #chatbox p.user-message {
-    align-self: flex-end; /* This will align user messages to the right */
-    background: rgba(0, 255, 0, 0.6);
-    color: white;
-    border: 1px solid rgba(0, 255, 0, 0.8);
-}
-       /* Bot Message */
-#chatbox p.bot-message {
-    align-self: flex-start; /* This will align bot messages to the left */
-    background: rgba(255, 255, 255, 0.3);
-    color: white; /* Changed to white */
-    border: 1px solid rgba(255, 255, 255, 0.6);
-}
+        .user-message {
+            align-self: flex-end;
+            background: rgba(0, 255, 0, 0.6);
+            color: white;
+            border: 1px solid rgba(0, 255, 0, 0.8);
+            text-align: right;
+        }
+
+        /* Bot Message */
+        .bot-message {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Timestamp */
+        .timestamp {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .bot-message .timestamp {
+            text-align: left;
+        }
 
         /* Chat Input Box */
         .chat-input {
@@ -136,14 +152,13 @@
         .send-btn:hover {
             background: rgba(0, 255, 0, 1);
         }
-
     </style>
 </head>
 <body>
 
     <div class="chat-container">
         <div class="chat-header">Chatbot</div>
-        <div id="chatbox"><div></div></div>
+        <div id="chatbox"></div>
         <div class="chat-input">
             <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
             <button class="send-btn" onclick="sendMessageFromButton()">Send</button>
@@ -152,7 +167,6 @@
 
     <script>
         var chatbox = document.getElementById('chatbox');
-        var chatboxContent = chatbox.querySelector('div');
         var userInput = document.getElementById('userInput');
 
         const backendUrl = 'https://chatbot-backend-3ep9.onrender.com';
@@ -164,25 +178,35 @@
 
         socket.on('disconnect', function() {
             console.log('Disconnected from server');
+            appendMessage("⚠️ Chatbot disconnected. Please check your internet connection.", 'bot');
         });
 
         socket.on('message', function(data) {
-            var message = document.createElement('p');
-            message.textContent = data;
-            message.classList.add('bot-message');
-            chatboxContent.appendChild(message);
-            chatbox.scrollTop = chatbox.scrollHeight;
+            appendMessage(data, 'bot');
         });
 
         function sendMessage(message) {
             if (message.trim() === '') return;
             socket.emit('user_message', message);
-            var userMessage = document.createElement('p');
-            userMessage.textContent = 'You: ' + message;
-            userMessage.classList.add('user-message');
-            chatboxContent.appendChild(userMessage);
+            appendMessage(message, 'user');
             userInput.value = "";
-            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function appendMessage(text, sender) {
+            var messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+
+            var messageText = document.createElement('span');
+            messageText.textContent = text;
+            messageDiv.appendChild(messageText);
+
+            var timestamp = document.createElement('span');
+            timestamp.classList.add('timestamp');
+            timestamp.textContent = new Date().toLocaleTimeString();
+            messageDiv.appendChild(timestamp);
+
+            chatbox.appendChild(messageDiv);
+            chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: "smooth" });
         }
 
         function handleKeyPress(event) {
