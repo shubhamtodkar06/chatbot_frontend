@@ -27,7 +27,7 @@
         var chatboxContent = chatbox.querySelector('div');
         var userInput = document.getElementById('userInput');
 
-        const backendUrl = process.env.RENDER_BACKEND_URL || '';
+        const backendUrl = 'https://chatbot-backend-3ep9.onrender.com';
         var socket = io(backendUrl);
 
         socket.on('connect', function() {
